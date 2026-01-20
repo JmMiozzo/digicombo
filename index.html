@@ -181,8 +181,8 @@
                             <input type="number" id="input-int" placeholder="0" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-center text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white">
                         </div>
                         <div>
-                            <label class="text-[10px] text-green-400 uppercase font-bold tracking-wider block mb-1 text-center">DEF (%)</label>
-                            <input type="number" id="input-def" placeholder="0" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-center text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all text-white">
+                            <label class="text-[10px] text-[#e4db2b] uppercase font-bold tracking-wider block mb-1 text-center">DEF (%)</label>
+                            <input type="number" id="input-def" placeholder="0" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-center text-sm focus:ring-2 focus:ring-[#e4db2b] outline-none transition-all text-white">
                         </div>
                     </div>
                     <div class="space-y-2">
@@ -217,6 +217,10 @@
                     <div class="flex justify-between items-center">
                         <h3 class="text-lg font-semibold flex items-center gap-2 text-slate-300"><i data-lucide="database" class="w-5 h-5"></i> Meu Banco de Dados</h3>
                         <span id="db-counter" class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-400">0 itens</span>
+                    </div>
+                    <div class="relative">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                        <input type="text" id="db-search" placeholder="Pesquisar Digimon..." class="w-full bg-slate-900 border border-slate-600 rounded-lg py-1.5 pl-9 pr-3 text-xs text-white outline-none focus:border-blue-500 transition-colors">
                     </div>
                     <button onclick="importWikiData()" class="w-full text-xs bg-blue-900/40 hover:bg-blue-800/60 text-blue-200 border border-blue-800/50 py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
                         <i data-lucide="book-open" class="w-3 h-3"></i> Carregar Digimons da Wiki
@@ -385,7 +389,8 @@
             btnDownload: document.getElementById('btn-download'),
             exportContent: document.getElementById('export-content'),
             previewModal: document.getElementById('preview-modal'),
-            previewImage: document.getElementById('preview-image')
+            previewImage: document.getElementById('preview-image'),
+            dbSearch: document.getElementById('db-search')
         };
 
         function render() {
@@ -445,10 +450,10 @@
                                     <input type="number" value="${item.int || 0}" class="w-5 bg-transparent text-white text-center outline-none p-0 h-full text-[9px] pointer-events-auto" onchange="updateStat('${item.id}', 'int', this.value)" onmousedown="event.stopPropagation()">
                                     <span class="text-blue-300 text-[8px]">%</span>
                                 </div>
-                                <div class="flex items-center justify-center bg-green-900/40 h-6">
-                                    <span class="text-green-300 mr-0.5 text-[8px]">D:</span>
+                                <div class="flex items-center justify-center bg-[#e4db2b]/10 h-6">
+                                    <span class="text-[#e4db2b] mr-0.5 text-[8px]">D:</span>
                                     <input type="number" value="${item.def || 0}" class="w-5 bg-transparent text-white text-center outline-none p-0 h-full text-[9px] pointer-events-auto" onchange="updateStat('${item.id}', 'def', this.value)" onmousedown="event.stopPropagation()">
-                                    <span class="text-green-300 text-[8px]">%</span>
+                                    <span class="text-[#e4db2b] text-[8px]">%</span>
                                 </div>
                             </div>
                         </div>
@@ -545,7 +550,7 @@
                                         <span class="text-[7px] opacity-70 mb-0.5">INT</span>
                                         <span>${item.int || 0}%</span>
                                     </div>
-                                    <div class="flex flex-col justify-center py-2 bg-green-900/50 text-green-200">
+                                    <div class="flex flex-col justify-center py-2 bg-[#e4db2b]/20 text-[#e4db2b]">
                                         <span class="text-[7px] opacity-70 mb-0.5">DEF</span>
                                         <span>${item.def || 0}%</span>
                                     </div>
@@ -593,20 +598,24 @@
         // ... (Resto das funções mantidas igual) ...
 
         function renderGallery() {
-            els.dbCounter.textContent = `${state.gallery.length} itens`;
+            // Filter logic
+            const searchTerm = els.dbSearch.value.trim().toLowerCase();
+            const filteredGallery = state.gallery.filter(item => item.name.toLowerCase().includes(searchTerm));
 
-            if (state.gallery.length === 0) {
+            els.dbCounter.textContent = `${filteredGallery.length} itens`;
+
+            if (filteredGallery.length === 0) {
                 els.galleryContainer.innerHTML = `
                     <div class="text-center text-slate-500 py-10 text-sm flex flex-col items-center gap-2">
                         <i data-lucide="database" class="w-8 h-8 opacity-20"></i>
-                        <span>Nenhum Digimon salvo.</span>
-                        <span class="text-xs opacity-60">Salve seus favoritos aqui para usar depois.</span>
+                        <span>${state.gallery.length > 0 ? 'Nenhum Digimon encontrado.' : 'Nenhum Digimon salvo.'}</span>
+                        <span class="text-xs opacity-60">${state.gallery.length > 0 ? 'Tente outro nome.' : 'Salve seus favoritos aqui para usar depois.'}</span>
                     </div>
                 `;
                 return;
             }
 
-            els.galleryContainer.innerHTML = state.gallery.map(item => `
+            els.galleryContainer.innerHTML = filteredGallery.map(item => `
                 <div class="flex items-center gap-3 bg-slate-900/50 p-2 rounded-lg border border-slate-700 hover:border-blue-500 transition-colors group">
                     <div class="w-12 h-12 rounded-md bg-slate-800 overflow-hidden flex-shrink-0 border border-slate-600">
                         ${item.img ? `<img src="${item.img}" class="w-full h-full object-cover">` : ''}
@@ -616,7 +625,7 @@
                         <div class="text-[10px] text-slate-400 mt-0.5 flex gap-2">
                             <span class="text-red-400">S:${item.str || 0}%</span>
                             <span class="text-blue-400">I:${item.int || 0}%</span>
-                            <span class="text-green-400">D:${item.def || 0}%</span>
+                            <span class="text-[#e4db2b]">D:${item.def || 0}%</span>
                         </div>
                     </div>
                     <div class="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
@@ -751,6 +760,9 @@
             }
         });
 
+        // Add search listener
+        els.dbSearch.addEventListener('input', renderGallery);
+
         function getFormData() {
             const name = els.inputName.value.trim();
             const img = tempImageBase64 || els.inputUrl.value.trim();
@@ -855,6 +867,13 @@
             saveLocal();
             render();
             showToast(`${count} Digimons importados!`);
+        }
+
+        function removeItem(e, id) {
+            if(e) e.stopPropagation();
+            state.items[state.activeTab] = state.items[state.activeTab].filter(item => String(item.id) !== String(id));
+            saveLocal();
+            render();
         }
 
         function resetForm() {
