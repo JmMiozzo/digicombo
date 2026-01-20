@@ -60,8 +60,13 @@
             box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
             z-index: 20;
         }
-        /* Previne interferência nos eventos de drag */
-        .pointer-events-none-on-drag * {
+        
+        /* Correção para permitir interação nos inputs durante drag */
+        .pointer-events-auto-important {
+            pointer-events: auto !important;
+        }
+        /* Apenas a imagem em si não deve disparar eventos de mouse complexos durante o drag, mas o container sim */
+        .no-pointer-events-img {
             pointer-events: none;
         }
 
@@ -72,19 +77,32 @@
             margin: 0; 
         }
 
-        /* Container de Exportação (Escondido da tela) */
-        /* Largura ajustada para layout de linhas horizontais largas */
+        /* Container de Exportação */
+        /* Aumentado para 1600px para garantir que os cards tenham espaço para nomes longos */
         #export-wrapper {
             position: absolute;
             left: -9999px;
             top: 0;
-            width: 1200px; 
+            width: 1600px; 
+        }
+        
+        /* Estilo para os botões de skill micro */
+        .skill-btn {
+            width: 100%;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            line-height: 1;
+            transition: background-color 0.2s;
+            cursor: pointer;
         }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen p-4 font-sans selection:bg-purple-500 selection:text-white">
 
-    <div class="max-w-[90rem] mx-auto space-y-6 pb-20">
+    <div class="max-w-[95rem] mx-auto space-y-6 pb-20">
         
         <!-- Header -->
         <div class="text-center space-y-2 relative">
@@ -134,9 +152,8 @@
             </div>
         </div>
 
-        <!-- Área de Controles: Adicionar e Banco de Dados -->
+        <!-- Área de Controles -->
         <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            
             <!-- Formulário de Adição -->
             <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-lg h-fit">
                 <h3 class="text-lg font-semibold mb-4 flex items-center gap-2 text-slate-300">
@@ -146,182 +163,88 @@
                 <form id="add-form" class="space-y-4">
                     <div>
                         <label class="text-xs text-slate-500 uppercase font-bold tracking-wider">Nome</label>
-                        <input 
-                            type="text" 
-                            id="input-name"
-                            placeholder="Ex: Greymon"
-                            class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white placeholder-slate-500"
-                        >
+                        <input type="text" id="input-name" placeholder="Ex: Greymon" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white placeholder-slate-500">
                     </div>
-
-                    <!-- Inputs de Status (STR, INT, DEF) -->
                     <div class="grid grid-cols-3 gap-2">
                         <div>
                             <label class="text-[10px] text-red-400 uppercase font-bold tracking-wider block mb-1 text-center">STR (%)</label>
-                            <input 
-                                type="number" 
-                                id="input-str"
-                                placeholder="0"
-                                class="w-full bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-center text-sm focus:ring-2 focus:ring-red-500 outline-none transition-all text-white"
-                            >
+                            <input type="number" id="input-str" placeholder="0" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-center text-sm focus:ring-2 focus:ring-red-500 outline-none transition-all text-white">
                         </div>
                         <div>
                             <label class="text-[10px] text-blue-400 uppercase font-bold tracking-wider block mb-1 text-center">INT (%)</label>
-                            <input 
-                                type="number" 
-                                id="input-int"
-                                placeholder="0"
-                                class="w-full bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-center text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white"
-                            >
+                            <input type="number" id="input-int" placeholder="0" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-center text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white">
                         </div>
                         <div>
                             <label class="text-[10px] text-green-400 uppercase font-bold tracking-wider block mb-1 text-center">DEF (%)</label>
-                            <input 
-                                type="number" 
-                                id="input-def"
-                                placeholder="0"
-                                class="w-full bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-center text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all text-white"
-                            >
+                            <input type="number" id="input-def" placeholder="0" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-center text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all text-white">
                         </div>
                     </div>
-                    
-                    <!-- Abas de Tipo de Imagem -->
                     <div class="space-y-2">
                         <label class="text-xs text-slate-500 uppercase font-bold tracking-wider">Imagem</label>
-                        
-                        <!-- Opção 1: URL -->
                         <div class="flex items-center gap-2 bg-slate-900 p-2 rounded-lg border border-slate-600">
                             <i data-lucide="link" class="w-4 h-4 text-slate-400"></i>
-                            <input 
-                                type="text" 
-                                id="input-url"
-                                placeholder="Cole o link da imagem..."
-                                class="w-full bg-transparent border-none outline-none text-sm text-white placeholder-slate-600"
-                            >
+                            <input type="text" id="input-url" placeholder="Cole o link da imagem..." class="w-full bg-transparent border-none outline-none text-sm text-white placeholder-slate-600">
                         </div>
-
                         <div class="text-center text-xs text-slate-600 font-bold">OU</div>
-
-                        <!-- Opção 2: Upload -->
                         <div class="relative group">
-                            <input 
-                                type="file" 
-                                id="input-file"
-                                accept="image/*"
-                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                            >
+                            <input type="file" id="input-file" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                             <div class="bg-slate-900 border border-dashed border-slate-500 group-hover:border-blue-500 rounded-lg p-3 flex items-center justify-center gap-2 text-sm text-slate-400 group-hover:text-blue-400 transition-colors">
                                 <i data-lucide="upload" class="w-4 h-4"></i>
                                 <span id="file-label">Carregar do Computador</span>
                             </div>
                         </div>
                     </div>
-
                     <div class="flex gap-2 pt-2">
-                        <button 
-                            type="submit" 
-                            id="btn-submit"
-                            disabled
-                            class="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2 rounded-lg transition-colors flex justify-center items-center gap-2"
-                        >
-                            <i data-lucide="plus" class="w-5 h-5"></i>
-                            Add Time
+                        <button type="submit" id="btn-submit" disabled class="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2 rounded-lg transition-colors flex justify-center items-center gap-2">
+                            <i data-lucide="plus" class="w-5 h-5"></i> Add Time
                         </button>
-                        
-                        <button 
-                            type="button" 
-                            id="btn-save-db"
-                            class="px-4 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
-                            title="Salvar no Banco de Dados Pessoal"
-                        >
+                        <button type="button" id="btn-save-db" class="px-4 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2" title="Salvar no Banco de Dados Pessoal">
                             <i data-lucide="save" class="w-5 h-5"></i>
                         </button>
                     </div>
                 </form>
             </div>
 
-            <!-- Banco de Dados Pessoal (Galeria) -->
+            <!-- Banco de Dados -->
             <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-lg flex flex-col h-[480px]">
                 <div class="flex flex-col gap-2 mb-4 border-b border-slate-700 pb-2">
                     <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-semibold flex items-center gap-2 text-slate-300">
-                            <i data-lucide="database" class="w-5 h-5"></i>
-                            Meu Banco de Dados
-                        </h3>
+                        <h3 class="text-lg font-semibold flex items-center gap-2 text-slate-300"><i data-lucide="database" class="w-5 h-5"></i> Meu Banco de Dados</h3>
                         <span id="db-counter" class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-400">0 itens</span>
                     </div>
-                    <!-- Botão Importar Wiki -->
                     <button onclick="importWikiData()" class="w-full text-xs bg-blue-900/40 hover:bg-blue-800/60 text-blue-200 border border-blue-800/50 py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
-                        <i data-lucide="book-open" class="w-3 h-3"></i>
-                        Carregar Digimons da Wiki
+                        <i data-lucide="book-open" class="w-3 h-3"></i> Carregar Digimons da Wiki
                     </button>
                 </div>
-                
-                <div class="flex-1 overflow-y-auto pr-2 space-y-2" id="gallery-container">
-                    <!-- Itens da galeria gerados via JS -->
-                    <div class="text-center text-slate-500 py-10 text-sm">
-                        Nenhum Digimon salvo.<br>Preencha o formulário e clique no ícone de Salvar <i data-lucide="save" class="inline w-3 h-3"></i>.
-                    </div>
-                </div>
-
+                <div class="flex-1 overflow-y-auto pr-2 space-y-2" id="gallery-container"></div>
                 <div class="mt-4 pt-4 border-t border-slate-700 text-center">
                     <button onclick="clearGallery()" class="text-xs text-red-400 hover:text-red-300 underline">Limpar Banco de Dados</button>
                 </div>
             </div>
-
-        </div>
-
-    </div>
-
-    <!-- AREA DE EXPORTAÇÃO (ESCONDIDA) -->
-    <div id="export-wrapper">
-        <div id="export-container" class="bg-slate-900 p-8 text-white space-y-6">
-            <div class="text-center mb-8">
-                <h1 class="text-5xl font-extrabold bg-gradient-to-r from-blue-400 via-red-400 to-green-400 bg-clip-text text-transparent inline-block pb-2">
-                    DigiCombo
-                </h1>
-                <p class="text-slate-400 text-sm mt-2">Meus Times</p>
-            </div>
-            <div id="export-content" class="space-y-6">
-                <!-- Conteúdo gerado dinamicamente -->
-            </div>
         </div>
     </div>
 
-    <!-- MODAL DE PRÉVIA -->
+    <!-- Exportação -->
+    <div id="export-wrapper"><div id="export-container" class="bg-slate-900 p-8 text-white space-y-6"><div class="text-center mb-8"><h1 class="text-5xl font-extrabold bg-gradient-to-r from-blue-400 via-red-400 to-green-400 bg-clip-text text-transparent inline-block pb-2">DigiCombo</h1><p class="text-slate-400 text-sm mt-2">Meus Times</p></div><div id="export-content" class="space-y-6"></div></div></div>
+
+    <!-- Modal Prévia -->
     <div id="preview-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="bg-slate-800 rounded-2xl border border-slate-700 shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-fade-in">
-            <!-- Header do Modal -->
             <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-900/50">
-                <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                    <i data-lucide="eye" class="w-5 h-5 text-blue-400"></i>
-                    Prévia da Imagem
-                </h3>
-                <button onclick="closePreview()" class="text-slate-400 hover:text-white transition-colors">
-                    <i data-lucide="x" class="w-6 h-6"></i>
-                </button>
+                <h3 class="text-lg font-bold text-white flex items-center gap-2"><i data-lucide="eye" class="w-5 h-5 text-blue-400"></i> Prévia da Imagem</h3>
+                <button onclick="closePreview()" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
-            
-            <!-- Corpo do Modal (Imagem) -->
             <div class="flex-1 overflow-auto p-6 bg-slate-900/80 flex items-center justify-center">
                 <img id="preview-image" src="" alt="Prévia" class="max-w-full h-auto rounded-lg shadow-lg border border-slate-600">
             </div>
-
-            <!-- Footer do Modal (Ações) -->
             <div class="p-4 border-t border-slate-700 bg-slate-900/50 flex justify-end gap-3">
-                <button onclick="closePreview()" class="px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors font-medium">
-                    Cancelar
-                </button>
-                <button onclick="confirmDownload()" class="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors font-bold flex items-center gap-2 shadow-lg hover:shadow-green-500/20">
-                    <i data-lucide="download" class="w-5 h-5"></i>
-                    Salvar Imagem
-                </button>
+                <button onclick="closePreview()" class="px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors font-medium">Cancelar</button>
+                <button onclick="confirmDownload()" class="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors font-bold flex items-center gap-2 shadow-lg hover:shadow-green-500/20"><i data-lucide="download" class="w-5 h-5"></i> Salvar Imagem</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- DADOS DA WIKI ---
         const WIKI_URLS = [
             "https://dsrworldwiki.com/assets-opt/digimons/azulongmon-800.1c6af0eb18c6.webp",
             "https://dsrworldwiki.com/assets-opt/digimons/babamon-800.93fe8616f016.webp",
@@ -413,36 +336,24 @@
             "https://dsrworldwiki.com/assets-opt/digimons/zhuqiaomon-800.00686b2c07df.webp"
         ];
 
-        // --- DADOS E ESTADO ---
         const TABS = {
             BLUE: { id: 'blue', label: 'Time Data', color: 'bg-blue-600', border: 'border-blue-600', text: 'text-blue-500' },
             RED: { id: 'red', label: 'Time Virus', color: 'bg-red-600', border: 'border-red-600', text: 'text-red-500' },
             GREEN: { id: 'green', label: 'Time Vacina', color: 'bg-green-600', border: 'border-green-600', text: 'text-green-500' }
         };
 
-        const MAX_SLOTS = 8; // RESTAURADO PARA 8
+        const MAX_SLOTS = 8;
 
-        // Estado da aplicação
         let state = {
             activeTab: 'blue',
-            items: {
-                blue: [],
-                red: [],
-                green: []
-            },
-            gallery: [] // Banco de dados pessoal
+            items: { blue: [], red: [], green: [] },
+            gallery: []
         };
 
-        // Variável de controle de drag and drop
         let dragSrcIndex = null;
-
-        // Variável temporária para imagem carregada (base64)
         let tempImageBase64 = null;
-
-        // Variavel temporaria para a imagem gerada (DataURL)
         let generatedImageDataUrl = null;
 
-        // --- ELEMENTOS DO DOM ---
         const els = {
             tabsContainer: document.getElementById('tabs-container'),
             mainArea: document.getElementById('main-area'),
@@ -471,8 +382,6 @@
             previewImage: document.getElementById('preview-image')
         };
 
-        // --- FUNÇÕES DE RENDERIZAÇÃO ---
-
         function render() {
             renderTabs();
             renderMainArea();
@@ -485,19 +394,10 @@
             els.tabsContainer.innerHTML = Object.values(TABS).map(tab => {
                 const isActive = state.activeTab === tab.id;
                 const count = state.items[tab.id].length;
-                
                 return `
-                    <button
-                        onclick="switchTab('${tab.id}')"
-                        class="flex-1 py-3 text-sm md:text-lg font-bold transition-all duration-300 rounded-lg flex items-center justify-center gap-2 cursor-pointer
-                        ${isActive 
-                            ? `${tab.color} text-white shadow-lg scale-100` 
-                            : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                        }"
-                    >
+                    <button onclick="switchTab('${tab.id}')" class="flex-1 py-3 text-sm md:text-lg font-bold transition-all duration-300 rounded-lg flex items-center justify-center gap-2 cursor-pointer ${isActive ? `${tab.color} text-white shadow-lg scale-100` : 'text-slate-400 hover:text-white hover:bg-slate-700'}">
                         <div class="w-3 h-3 rounded-full ${isActive ? 'bg-white' : tab.color}"></div>
-                        ${tab.label}
-                        <span class="text-xs opacity-60 ml-1">(${count}/${MAX_SLOTS})</span>
+                        ${tab.label} <span class="text-xs opacity-60 ml-1">(${count}/${MAX_SLOTS})</span>
                     </button>
                 `;
             }).join('');
@@ -506,128 +406,94 @@
         function renderMainArea() {
             const currentTab = TABS[Object.keys(TABS).find(k => TABS[k].id === state.activeTab)];
             const currentItems = state.items[state.activeTab];
-
-            // Atualizar estilos
             els.mainArea.className = `bg-slate-800 rounded-2xl p-6 border-t-4 ${currentTab.border} shadow-2xl min-h-[250px] transition-colors duration-300`;
             els.tabTitle.className = `text-2xl font-bold flex items-center gap-2 ${currentTab.text}`;
             els.tabTitle.textContent = currentTab.label;
             els.slotCounter.textContent = `Slots: ${currentItems.length} / ${MAX_SLOTS}`;
 
             let gridHtml = '';
-
-            // Slots Preenchidos (Arrastáveis)
             currentItems.forEach((item, index) => {
                 gridHtml += `
-                    <div 
-                        class="group relative bg-slate-700 rounded-3xl border-2 border-slate-600 hover:border-white transition-all duration-300 shadow-lg hover:shadow-2xl flex flex-col overflow-hidden fade-in cursor-grab"
-                        draggable="true"
-                        ondragstart="handleDragStart(event, ${index})"
-                        ondragend="handleDragEnd(event)"
-                        ondragover="handleDragOver(event)"
-                        ondragenter="handleDragEnter(event)"
-                        ondragleave="handleDragLeave(event)"
-                        ondrop="handleDrop(event, ${index})"
-                    >
-                        
-                        <!-- Container da Imagem (Quadrado) -->
-                        <div class="relative w-full aspect-square overflow-hidden bg-slate-800 pointer-events-none-on-drag">
-                            ${item.img 
-                                ? `<img src="${item.img}" alt="${item.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">` 
-                                : `<div class="w-full h-full flex items-center justify-center text-3xl font-bold text-slate-900/50 bg-slate-600">${item.name.substring(0, 2).toUpperCase()}</div>`
-                            }
-
-                            <!-- Botão de Remover (Sobre a Imagem) -->
-                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10 backdrop-blur-[2px]">
-                                <button 
-                                    onclick="removeItem(event, ${item.id})"
-                                    class="p-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all hover:scale-110 shadow-xl border-2 border-white/20 cursor-pointer pointer-events-auto"
-                                    title="Remover"
-                                    onmousedown="event.stopPropagation()" 
-                                >
-                                    <i data-lucide="trash-2" class="w-6 h-6"></i>
-                                </button>
+                    <div class="group relative bg-slate-700 rounded-3xl border-2 border-slate-600 hover:border-white transition-all duration-300 shadow-lg hover:shadow-2xl flex flex-col overflow-hidden fade-in cursor-grab" draggable="true" ondragstart="handleDragStart(event, ${index})" ondragend="handleDragEnd(event)" ondragover="handleDragOver(event)" ondragenter="handleDragEnter(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, ${index})">
+                        <!-- Imagem -->
+                        <div class="relative w-full aspect-square overflow-hidden bg-slate-800 no-pointer-events-img">
+                            ${item.img ? `<img src="${item.img}" alt="${item.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">` : `<div class="w-full h-full flex items-center justify-center text-3xl font-bold text-slate-900/50 bg-slate-600">${item.name.substring(0, 2).toUpperCase()}</div>`}
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10 backdrop-blur-[2px] pointer-events-auto-important">
+                                <button onclick="removeItem(event, '${item.id}')" class="p-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all hover:scale-110 shadow-xl border-2 border-white/20 cursor-pointer pointer-events-auto" title="Remover" onmousedown="event.stopPropagation()"><i data-lucide="trash-2" class="w-6 h-6"></i></button>
                             </div>
                         </div>
 
-                        <!-- Etiqueta do Nome -->
-                        <div class="py-1 px-1 bg-slate-800/80 text-center border-t border-slate-600/50 flex flex-col items-center justify-center pointer-events-none-on-drag">
-                            <span class="text-white text-xs md:text-sm font-impact tracking-wide uppercase block truncate w-full text-slate-200 group-hover:text-white transition-colors">
-                                ${item.name}
-                            </span>
+                        <!-- Info (Nome e Stats) -->
+                        <div class="bg-slate-800/80 pointer-events-auto-important">
+                            <div class="py-1 px-1 text-center border-t border-slate-600/50">
+                                <span class="text-white text-xs font-impact tracking-wide uppercase block truncate w-full text-slate-200 group-hover:text-white transition-colors">${item.name}</span>
+                            </div>
+                            <div class="grid grid-cols-3 text-[9px] font-bold text-center bg-slate-900 border-t border-slate-600">
+                                <div class="flex items-center justify-center bg-red-900/40 border-r border-slate-700 h-6">
+                                    <span class="text-red-300 mr-0.5 text-[8px]">S:</span>
+                                    <input type="number" value="${item.str || 0}" class="w-5 bg-transparent text-white text-center outline-none p-0 h-full text-[9px] pointer-events-auto" onchange="updateStat('${item.id}', 'str', this.value)" onmousedown="event.stopPropagation()">
+                                    <span class="text-red-300 text-[8px]">%</span>
+                                </div>
+                                <div class="flex items-center justify-center bg-blue-900/40 border-r border-slate-700 h-6">
+                                    <span class="text-blue-300 mr-0.5 text-[8px]">I:</span>
+                                    <input type="number" value="${item.int || 0}" class="w-5 bg-transparent text-white text-center outline-none p-0 h-full text-[9px] pointer-events-auto" onchange="updateStat('${item.id}', 'int', this.value)" onmousedown="event.stopPropagation()">
+                                    <span class="text-blue-300 text-[8px]">%</span>
+                                </div>
+                                <div class="flex items-center justify-center bg-green-900/40 h-6">
+                                    <span class="text-green-300 mr-0.5 text-[8px]">D:</span>
+                                    <input type="number" value="${item.def || 0}" class="w-5 bg-transparent text-white text-center outline-none p-0 h-full text-[9px] pointer-events-auto" onchange="updateStat('${item.id}', 'def', this.value)" onmousedown="event.stopPropagation()">
+                                    <span class="text-green-300 text-[8px]">%</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Abas de Stats Editáveis (3 Quadrados compactos) -->
-                        <div class="grid grid-cols-3 text-[9px] font-bold text-center bg-slate-900 border-t border-slate-600">
-                            <div class="flex flex-col items-center justify-center bg-red-900/40 border-r border-slate-700 py-1">
-                                <span class="text-red-400 text-[8px] mb-0.5">STR</span>
-                                <div class="flex items-center">
-                                    <input 
-                                        type="number" 
-                                        value="${item.str || 0}" 
-                                        class="w-6 bg-transparent text-white text-center outline-none"
-                                        onchange="updateStat(${item.id}, 'str', this.value)"
-                                        onmousedown="event.stopPropagation()"
-                                    >
-                                    <span class="text-red-400">%</span>
-                                </div>
-                            </div>
-                            <div class="flex flex-col items-center justify-center bg-blue-900/40 border-r border-slate-700 py-1">
-                                <span class="text-blue-400 text-[8px] mb-0.5">INT</span>
-                                <div class="flex items-center">
-                                    <input 
-                                        type="number" 
-                                        value="${item.int || 0}" 
-                                        class="w-6 bg-transparent text-white text-center outline-none"
-                                        onchange="updateStat(${item.id}, 'int', this.value)"
-                                        onmousedown="event.stopPropagation()"
-                                    >
-                                    <span class="text-blue-400">%</span>
-                                </div>
-                            </div>
-                            <div class="flex flex-col items-center justify-center bg-green-900/40 py-1">
-                                <span class="text-green-400 text-[8px] mb-0.5">DEF</span>
-                                <div class="flex items-center">
-                                    <input 
-                                        type="number" 
-                                        value="${item.def || 0}" 
-                                        class="w-6 bg-transparent text-white text-center outline-none"
-                                        onchange="updateStat(${item.id}, 'def', this.value)"
-                                        onmousedown="event.stopPropagation()"
-                                    >
-                                    <span class="text-green-400">%</span>
-                                </div>
-                            </div>
+                        <!-- Skills -->
+                        <div class="grid grid-cols-3 text-[9px] font-bold text-center bg-slate-900 border-t border-slate-600 pointer-events-auto-important">
+                            ${[1, 2, 3].map(n => {
+                                const val = item[`s${n}`] || 1;
+                                return `
+                                <div class="flex flex-col items-center justify-center py-1 border-r border-slate-700 last:border-0" onmousedown="event.stopPropagation()">
+                                    <div class="flex items-center gap-1 w-full justify-center">
+                                        <button onclick="updateSkill('${item.id}', 's${n}', -1)" class="text-red-400 hover:text-white px-1 font-bold">-</button>
+                                        <span class="text-purple-400 text-[8px]">S${n}</span>
+                                        <button onclick="updateSkill('${item.id}', 's${n}', 1)" class="text-green-400 hover:text-white px-1 font-bold">+</button>
+                                    </div>
+                                    <span class="font-mono text-white text-[10px]">${val}</span>
+                                </div>`;
+                            }).join('')}
                         </div>
                     </div>
                 `;
             });
 
-            // Slots Vazios (Alvos de Drop)
             const emptySlots = Math.max(0, MAX_SLOTS - currentItems.length);
             for (let i = 0; i < emptySlots; i++) {
                 gridHtml += `
-                    <div 
-                        class="flex flex-col rounded-3xl border-2 border-dashed border-slate-700/60 transition-colors hover:bg-slate-800 hover:border-slate-600 overflow-hidden opacity-60 hover:opacity-100"
-                        ondragover="handleDragOver(event)"
-                        ondragenter="handleDragEnter(event)"
-                        ondragleave="handleDragLeave(event)"
-                        ondrop="handleDropToEmpty(event)"
-                    >
-                        <div class="w-full aspect-square flex items-center justify-center bg-slate-800/30 pointer-events-none">
-                            <span class="text-2xl font-bold opacity-30 text-slate-500">${currentItems.length + i + 1}</span>
-                        </div>
-                        <div class="py-2 px-1 bg-slate-800/20 border-t border-dashed border-slate-700/60 flex-1 min-h-[40px] pointer-events-none"></div>
+                    <div class="flex flex-col rounded-3xl border-2 border-dashed border-slate-700/60 transition-colors hover:bg-slate-800 hover:border-slate-600 overflow-hidden opacity-60 hover:opacity-100 min-h-[180px]" ondragover="handleDragOver(event)" ondragenter="handleDragEnter(event)" ondragleave="handleDragLeave(event)" ondrop="handleDropToEmpty(event)">
+                        <div class="w-full h-full flex items-center justify-center bg-slate-800/30 pointer-events-none"><span class="text-2xl font-bold opacity-30 text-slate-500">${currentItems.length + i + 1}</span></div>
                     </div>
                 `;
             }
-
             els.slotsGrid.innerHTML = gridHtml;
+        }
+
+        function updateSkill(itemId, key, delta) {
+            const list = state.items[state.activeTab];
+            const item = list.find(i => String(i.id) === String(itemId));
+            if (item) {
+                let newVal = (item[key] || 1) + delta;
+                if (newVal < 1) newVal = 1;
+                if (newVal > 10) newVal = 10;
+                item[key] = newVal;
+                saveLocal();
+                render(); 
+            }
         }
 
         // Nova função para gerar a visualização de exportação
         function renderExportView() {
-            // MUDANÇA: Layout Vertical (Times empilhados verticalmente)
-            els.exportContent.className = "flex flex-col gap-6 w-full"; // Times um em cima do outro
+            // Layout vertical de times, mas com cards verticais robustos para caber o nome
+            els.exportContent.className = "flex flex-col gap-8 w-full"; 
             
             let html = '';
             
@@ -637,20 +503,19 @@
                 
                 html += `
                     <div class="bg-slate-800 rounded-xl p-4 border-l-8 ${borderColor} shadow-lg w-full">
-                        <div class="flex items-center gap-3 mb-4 border-b border-slate-700 pb-2">
+                        <div class="flex items-center gap-3 mb-4 border-b border-slate-700 pb-2 justify-center">
                             <div class="w-4 h-4 rounded-full ${tab.color}"></div>
                             <h2 class="text-xl font-bold text-slate-200 uppercase tracking-wider">${tab.label}</h2>
                         </div>
                         
                         <!-- Grid Horizontal de Items (Linha única) -->
-                        <div class="grid grid-cols-8 gap-3">
+                        <div class="grid grid-cols-8 gap-4">
                 `;
 
-                // Renderiza slots preenchidos
                 items.forEach(item => {
                     html += `
                         <div class="bg-slate-700 rounded-lg overflow-hidden border border-slate-600 flex flex-col shadow-md">
-                            <!-- Foto Grande e Quadrada -->
+                            <!-- Foto Grande -->
                             <div class="w-full aspect-square bg-slate-800 relative">
                                 ${item.img 
                                     ? `<img src="${item.img}" class="absolute inset-0 w-full h-full object-cover">`
@@ -658,25 +523,41 @@
                                 }
                             </div>
                             
-                            <!-- Info Abaixo (Nome + 3 Quadrados de Stats) -->
-                            <div class="bg-slate-900/90 border-t border-slate-600">
-                                <div class="p-1 flex items-center justify-center text-center">
-                                    <span class="text-[10px] leading-tight text-white font-impact uppercase block whitespace-normal break-words w-full tracking-wide truncate">${item.name}</span>
+                            <!-- Info -->
+                            <div class="bg-slate-900/90 border-t border-slate-600 flex-1 flex flex-col justify-between">
+                                <div class="p-2 flex items-center justify-center text-center">
+                                    <span class="text-[10px] leading-tight text-white font-impact uppercase block break-words w-full tracking-wide">${item.name}</span>
                                 </div>
                                 
-                                <!-- Stats como 3 quadrados abaixo (mesmo estilo da criação) -->
+                                <!-- Stats Visíveis -->
                                 <div class="grid grid-cols-3 text-[9px] font-bold text-center border-t border-slate-700">
-                                    <div class="flex flex-col justify-center py-1 bg-red-900/50 text-red-200 border-r border-slate-700">
+                                    <div class="flex flex-col justify-center py-2 bg-red-900/50 text-red-200 border-r border-slate-700">
                                         <span class="text-[7px] opacity-70 mb-0.5">STR</span>
                                         <span>${item.str || 0}%</span>
                                     </div>
-                                    <div class="flex flex-col justify-center py-1 bg-blue-900/50 text-blue-200 border-r border-slate-700">
+                                    <div class="flex flex-col justify-center py-2 bg-blue-900/50 text-blue-200 border-r border-slate-700">
                                         <span class="text-[7px] opacity-70 mb-0.5">INT</span>
                                         <span>${item.int || 0}%</span>
                                     </div>
-                                    <div class="flex flex-col justify-center py-1 bg-green-900/50 text-green-200">
+                                    <div class="flex flex-col justify-center py-2 bg-green-900/50 text-green-200">
                                         <span class="text-[7px] opacity-70 mb-0.5">DEF</span>
                                         <span>${item.def || 0}%</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Skills (Visualização na Exportação - MAIOR) -->
+                                <div class="grid grid-cols-3 gap-1 p-1.5 bg-slate-800 border-t border-slate-700">
+                                    <div class="bg-purple-900/30 border border-purple-500/30 rounded flex flex-col items-center justify-center py-1.5">
+                                        <span class="text-[7px] font-bold text-purple-400 uppercase mb-0.5">SKILL 1</span>
+                                        <span class="text-sm font-bold text-white font-mono">${item.s1||1}</span>
+                                    </div>
+                                    <div class="bg-purple-900/30 border border-purple-500/30 rounded flex flex-col items-center justify-center py-1.5">
+                                        <span class="text-[7px] font-bold text-purple-400 uppercase mb-0.5">SKILL 2</span>
+                                        <span class="text-sm font-bold text-white font-mono">${item.s2||1}</span>
+                                    </div>
+                                    <div class="bg-purple-900/30 border border-purple-500/30 rounded flex flex-col items-center justify-center py-1.5">
+                                        <span class="text-[7px] font-bold text-purple-400 uppercase mb-0.5">SKILL 3</span>
+                                        <span class="text-sm font-bold text-white font-mono">${item.s3||1}</span>
                                     </div>
                                 </div>
                             </div>
@@ -703,7 +584,7 @@
             els.exportContent.innerHTML = html;
         }
 
-        // ... (Resto do código mantido igual) ...
+        // ... (Resto das funções mantidas igual) ...
 
         function renderGallery() {
             els.dbCounter.textContent = `${state.gallery.length} itens`;
@@ -761,7 +642,7 @@
 
         function updateStat(itemId, statType, value) {
             const list = state.items[state.activeTab];
-            const item = list.find(i => i.id === itemId);
+            const item = list.find(i => String(i.id) === String(itemId));
             if (item) {
                 item[statType] = value;
                 saveLocal();
@@ -865,7 +746,8 @@
                 img,
                 str,
                 int,
-                def
+                def,
+                s1: 1, s2: 1, s3: 1
             };
         }
 
@@ -890,10 +772,8 @@
         els.btnSaveDb.addEventListener('click', function() {
             const item = getFormData();
             if (!item) {
-                showError("Preencha pelo menos o Nome para salvar no Banco.");
+                showError("Preencha pelo menos o Nome para salvar.");
                 return;
-            }
-            if (state.gallery.some(g => g.name.toLowerCase() === item.name.toLowerCase())) {
             }
             state.gallery.unshift(item);
             saveLocal();
@@ -905,7 +785,7 @@
             const galleryItem = state.gallery.find(g => String(g.id) === String(id));
             if (!galleryItem) return;
 
-            const newItem = { ...galleryItem, id: Date.now() };
+            const newItem = { ...galleryItem, id: Date.now(), s1:1, s2:1, s3:1 };
             const currentTab = TABS[Object.keys(TABS).find(k => TABS[k].id === state.activeTab)];
             if (state.items[state.activeTab].length >= MAX_SLOTS) {
                 showError(`A aba ${currentTab.label} cheia!`);
@@ -931,11 +811,8 @@
 
         function importWikiData() {
             const wikiItems = WIKI_URLS.map((url, index) => {
-                const filename = url.split('/').pop();
-                const namePart = filename.split('-800')[0];
-                const cleanName = namePart.split('_')
-                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(' ');
+                const filename = url.split('/').pop().split('-800')[0];
+                const cleanName = filename.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
                 
                 return {
                     id: `wiki_${index}_${Date.now()}`,
@@ -957,7 +834,7 @@
 
             saveLocal();
             render();
-            showToast(`${count} Digimons importados com sucesso!`);
+            showToast(`${count} Digimons importados!`);
         }
 
         function removeItem(e, id) {
