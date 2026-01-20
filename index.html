@@ -141,9 +141,15 @@
                 <h2 id="tab-title" class="text-2xl font-bold flex items-center gap-2 transition-colors duration-300">
                     <!-- Título gerado via JS -->
                 </h2>
-                <span id="slot-counter" class="text-slate-500 text-sm font-mono">
-                    <!-- Contador gerado via JS -->
-                </span>
+                <div class="flex items-center gap-3">
+                    <span id="slot-counter" class="text-slate-500 text-sm font-mono">
+                        <!-- Contador gerado via JS -->
+                    </span>
+                    <button onclick="clearCurrentTeam()" class="flex items-center gap-1 text-xs bg-red-500/10 hover:bg-red-500/30 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-lg transition-colors cursor-pointer" title="Limpar todos desta aba">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                        <span class="hidden sm:inline">Limpar Time</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Grid de Slots -->
@@ -697,11 +703,25 @@
                 const list = state.items[state.activeTab];
                 const itemToMove = list[dragSrcIndex];
                 list.splice(dragSrcIndex, 1);
-                list.push(itemToMove);
+                list.splice(targetIndex, 0, itemToMove); // Changed from push to splice at index for better empty slot handling if needed, but push works for simply appending. Let's keep logic simple: remove from old, push to end.
+                list.push(itemToMove); // Actually previous logic was push to end when dropping on empty.
                 saveLocal();
                 render();
             }
             return false;
+        }
+
+        function removeItem(e, id) {
+            if(e) e.stopPropagation();
+            state.items[state.activeTab] = state.items[state.activeTab].filter(item => String(item.id) !== String(id));
+            saveLocal();
+            render();
+        }
+
+        function clearCurrentTeam() {
+            state.items[state.activeTab] = [];
+            saveLocal();
+            render();
         }
 
         function switchTab(tabId) {
@@ -835,13 +855,6 @@
             saveLocal();
             render();
             showToast(`${count} Digimons importados!`);
-        }
-
-        function removeItem(e, id) {
-            if(e) e.stopPropagation();
-            state.items[state.activeTab] = state.items[state.activeTab].filter(item => item.id !== id);
-            saveLocal();
-            render();
         }
 
         function resetForm() {
