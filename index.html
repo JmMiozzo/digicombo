@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DigiCombo</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- html2canvas para gerar a imagem -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        /* Fonte Impact customizada */
+        .font-impact {
+            font-family: 'Impact', 'Arial Black', sans-serif;
+        }
+        /* Animações suaves */
+        .fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+
+        /* Estilos de Drag and Drop */
+        .cursor-grab {
+            cursor: grab;
+        }
+        .cursor-grabbing {
+            cursor: grabbing;
+        }
+        /* Item sendo arrastado (origem) */
+        .draggable-source {
+            opacity: 0.4;
+            filter: grayscale(0.5);
+            border-style: dashed;
+            border-color: #60a5fa; /* blue-400 */
+        }
+        /* Item alvo (destino) */
+        .drag-over {
+            transform: scale(1.05);
+            border-color: #4ade80 !important; /* green-400 */
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+            z-index: 20;
+        }
+        /* Previne interferência nos eventos de drag */
+        .pointer-events-none-on-drag * {
+            pointer-events: none;
+        }
+
+        /* Remove setas dos inputs number */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+
+        /* Container de Exportação (Escondido da tela) */
+        /* Largura ajustada para layout de linhas horizontais largas */
+        #export-wrapper {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            width: 1200px; 
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 font-sans selection:bg-purple-500 selection:text-white">
+
+    <div class="max-w-[90rem] mx-auto space-y-6 pb-20">
+        
+        <!-- Header -->
+        <div class="text-center space-y-2 relative">
+            <h1 class="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-blue-400 via-red-400 to-green-400 bg-clip-text text-transparent">
+                DigiCombo
+            </h1>
+            <p class="text-slate-400 text-sm">Gerencie seus times de maneira organizada</p>
+            
+            <!-- Botão de Preparar Download Imagem -->
+            <button id="btn-download" onclick="prepareImageDownload()" class="md:absolute md:right-0 md:top-2 mt-4 md:mt-0 bg-slate-800 hover:bg-slate-700 text-purple-400 border border-slate-700 hover:border-purple-400 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 mx-auto transition-all shadow-lg active:scale-95">
+                <i data-lucide="camera" class="w-4 h-4"></i>
+                Baixar Imagem
+            </button>
+        </div>
+
+        <!-- Mensagem de Sucesso (Toast) -->
+        <div id="toast-container" class="fixed top-5 right-5 z-50 hidden bg-green-500 text-white px-4 py-3 rounded-lg shadow-2xl flex items-center gap-2 animate-bounce">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+            <span id="toast-message">Imagem salva!</span>
+        </div>
+
+        <!-- Mensagem de Erro -->
+        <div id="error-container" class="hidden bg-red-500/10 border border-red-500/50 text-red-200 p-3 rounded-lg flex items-center gap-2 animate-bounce fixed top-20 right-5 z-50 max-w-sm">
+            <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i>
+            <span id="error-message"></span>
+        </div>
+
+        <!-- Navegação de Abas -->
+        <div id="tabs-container" class="flex rounded-xl overflow-hidden bg-slate-800 p-1 shadow-2xl border border-slate-700 max-w-4xl mx-auto">
+            <!-- Abas geradas via JS -->
+        </div>
+
+        <!-- Área Principal (Grid) -->
+        <div id="main-area" class="bg-slate-800 rounded-2xl p-6 border-t-4 shadow-2xl min-h-[250px] transition-colors duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="tab-title" class="text-2xl font-bold flex items-center gap-2 transition-colors duration-300">
+                    <!-- Título gerado via JS -->
+                </h2>
+                <span id="slot-counter" class="text-slate-500 text-sm font-mono">
+                    <!-- Contador gerado via JS -->
+                </span>
+            </div>
+
+            <!-- Grid de Slots -->
+            <div id="slots-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+                <!-- Slots gerados via JS -->
+            </div>
+        </div>
+
+        <!-- Área de Controles: Adicionar e Banco de Dados -->
+        <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            
+            <!-- Formulário de Adição -->
+            <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-lg h-fit">
+                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2 text-slate-300">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    Novo Digimon
+                </h3>
+                <form id="add-form" class="space-y-4">
+                    <div>
+                        <label class="text-xs text-slate-500 uppercase font-bold tracking-wider">Nome</label>
+                        <input 
+                            type="text" 
+                            id="input-name"
+                            placeholder="Ex: Greymon"
+                            class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white placeholder-slate-500"
+                        >
+                    </div>
+
+                    <!-- Inputs de Status (STR, INT, DEF) -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="text-[10px] text-red-400 uppercase font-bold tracking-wider block mb-1 text-center">STR (%)</label>
+                            <input 
+                                type="number" 
+                                id="input-str"
+                                placeholder="0"
+                                class="w-full bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-center text-sm focus:ring-2 focus:ring-red-500 outline-none transition-all text-white"
+                            >
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-blue-400 uppercase font-bold tracking-wider block mb-1 text-center">INT (%)</label>
+                            <input 
+                                type="number" 
+                                id="input-int"
+                                placeholder="0"
+                                class="w-full bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-center text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white"
+                            >
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-green-400 uppercase font-bold tracking-wider block mb-1 text-center">DEF (%)</label>
+                            <input 
+                                type="number" 
+                                id="input-def"
+                                placeholder="0"
+                                class="w-full bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-center text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all text-white"
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- Abas de Tipo de Imagem -->
+                    <div class="space-y-2">
+                        <label class="text-xs text-slate-500 uppercase font-bold tracking-wider">Imagem</label>
+                        
+                        <!-- Opção 1: URL -->
+                        <div class="flex items-center gap-2 bg-slate-900 p-2 rounded-lg border border-slate-600">
+                            <i data-lucide="link" class="w-4 h-4 text-slate-400"></i>
+                            <input 
+                                type="text" 
+                                id="input-url"
+                                placeholder="Cole o link da imagem..."
+                                class="w-full bg-transparent border-none outline-none text-sm text-white placeholder-slate-600"
+                            >
+                        </div>
+
+                        <div class="text-center text-xs text-slate-600 font-bold">OU</div>
+
+                        <!-- Opção 2: Upload -->
+                        <div class="relative group">
+                            <input 
+                                type="file" 
+                                id="input-file"
+                                accept="image/*"
+                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            >
+                            <div class="bg-slate-900 border border-dashed border-slate-500 group-hover:border-blue-500 rounded-lg p-3 flex items-center justify-center gap-2 text-sm text-slate-400 group-hover:text-blue-400 transition-colors">
+                                <i data-lucide="upload" class="w-4 h-4"></i>
+                                <span id="file-label">Carregar do Computador</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <button 
+                            type="submit" 
+                            id="btn-submit"
+                            disabled
+                            class="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2 rounded-lg transition-colors flex justify-center items-center gap-2"
+                        >
+                            <i data-lucide="plus" class="w-5 h-5"></i>
+                            Add Time
+                        </button>
+                        
+                        <button 
+                            type="button" 
+                            id="btn-save-db"
+                            class="px-4 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+                            title="Salvar no Banco de Dados Pessoal"
+                        >
+                            <i data-lucide="save" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Banco de Dados Pessoal (Galeria) -->
+            <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-lg flex flex-col h-[480px]">
+                <div class="flex flex-col gap-2 mb-4 border-b border-slate-700 pb-2">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold flex items-center gap-2 text-slate-300">
+                            <i data-lucide="database" class="w-5 h-5"></i>
+                            Meu Banco de Dados
+                        </h3>
+                        <span id="db-counter" class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-400">0 itens</span>
+                    </div>
+                    <!-- Botão Importar Wiki -->
+                    <button onclick="importWikiData()" class="w-full text-xs bg-blue-900/40 hover:bg-blue-800/60 text-blue-200 border border-blue-800/50 py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="book-open" class="w-3 h-3"></i>
+                        Carregar Digimons da Wiki
+                    </button>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto pr-2 space-y-2" id="gallery-container">
+                    <!-- Itens da galeria gerados via JS -->
+                    <div class="text-center text-slate-500 py-10 text-sm">
+                        Nenhum Digimon salvo.<br>Preencha o formulário e clique no ícone de Salvar <i data-lucide="save" class="inline w-3 h-3"></i>.
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-slate-700 text-center">
+                    <button onclick="clearGallery()" class="text-xs text-red-400 hover:text-red-300 underline">Limpar Banco de Dados</button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- AREA DE EXPORTAÇÃO (ESCONDIDA) -->
+    <div id="export-wrapper">
+        <div id="export-container" class="bg-slate-900 p-8 text-white space-y-6">
+            <div class="text-center mb-8">
+                <h1 class="text-5xl font-extrabold bg-gradient-to-r from-blue-400 via-red-400 to-green-400 bg-clip-text text-transparent inline-block pb-2">
+                    DigiCombo
+                </h1>
+                <p class="text-slate-400 text-sm mt-2">Meus Times</p>
+            </div>
+            <div id="export-content" class="space-y-6">
+                <!-- Conteúdo gerado dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE PRÉVIA -->
+    <div id="preview-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-fade-in">
+            <!-- Header do Modal -->
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-900/50">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i data-lucide="eye" class="w-5 h-5 text-blue-400"></i>
+                    Prévia da Imagem
+                </h3>
+                <button onclick="closePreview()" class="text-slate-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <!-- Corpo do Modal (Imagem) -->
+            <div class="flex-1 overflow-auto p-6 bg-slate-900/80 flex items-center justify-center">
+                <img id="preview-image" src="" alt="Prévia" class="max-w-full h-auto rounded-lg shadow-lg border border-slate-600">
+            </div>
+
+            <!-- Footer do Modal (Ações) -->
+            <div class="p-4 border-t border-slate-700 bg-slate-900/50 flex justify-end gap-3">
+                <button onclick="closePreview()" class="px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors font-medium">
+                    Cancelar
+                </button>
+                <button onclick="confirmDownload()" class="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors font-bold flex items-center gap-2 shadow-lg hover:shadow-green-500/20">
+                    <i data-lucide="download" class="w-5 h-5"></i>
+                    Salvar Imagem
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DADOS DA WIKI ---
+        const WIKI_URLS = [
+            "https://dsrworldwiki.com/assets-opt/digimons/azulongmon-800.1c6af0eb18c6.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/babamon-800.93fe8616f016.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/baihumon-800.4a197e7f5165.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/bancholeomon-800.06e5072c632f.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/bancholeomon_burstmode-800.0d56ef3fd742.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/banchomamemon-800.ff781a321cee.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/beelzemon-800.b8ee72a2c9cb.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/beelzemon_xwars-800.db6fc28872e6.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/beelzemon_blastmode-800.35905cf8ad5e.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/blackseraphimon-800.1834dcfda7af.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/blackwargreymon-800.014d272f030e.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/blastmon-800.8770c1ef5d28.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/blitzgreymon-800.377dd7bbfbef.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/cherubimon_black-800.faceceeb8e5c.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/cherubimon_good-800.c387c5b8e1c3.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/clavisangemon-800.f3235e77aecd.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/craniamon-800.df3480eb1c67.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/creepymon-800.1ee85b7229a6.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/cresgarurumon-800.2eb6b5ae956e.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/donedevimon-800.d51b35383a3b.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/dynasmon-800.bf0c5015d9f0.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/eaglemon-800.41c46461ae6a.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/ebemon-800.27ed37add8b7.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/gaiomon-800.8e3acd07edf7.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/gallantmon-800.2b8ac03812e6.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/gallantmon_crimsonmode-800.0d29920cc118.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/ghoulmon-800.d97104a42387.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/goldramon-800.b8cacc0a3a5e.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/grandiskuwagamon-800.e5ea5656d333.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/gulfmon-800.78e54a74881f.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/herculeskabuterimon-800.0fe9fc588b93.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/imperialdramon_paladinmode-800.6fbb4a5a73d0.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/justimon_accelarm-800.a718711c1b06.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/kentaurosmon-800.912a9094c4f8.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/kuzuhamon-800.1701da6c3cea.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/kuzuhamon_maidmode-800.9f54f091e662.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/leopardmon-800.3380456a1cd4.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/lilithmon-800.f8de2d954868.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/lordknightmon-800.b09a10483065.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/machinedramon-800.141cfb939369.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/magnadramon-800.ebadb6755eb4.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/malomyotismon-800.7fb540afd689.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/marineangemon-800.4623a9365606.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/marsmon-800.a70cd93f5912.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/mastemon-800.8926b2f97990.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/megagargomon-800.ac9480f54c0a.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/megidramon-800.8adc7fdc6774.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/metaletemon-800.0cafc645239c.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/metalgarurumon-800.642d193e4de5.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/metalseadramon-800.014fa2e8682a.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/millenniumon-800.60a14deb9a28.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/moonmillenniumon-800.d611e9d31ad2.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/neomyotismon-800.40d93b1b8624.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/neptunemon-800.b14e108377ba.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/omnimon-800.6b721ae991aa.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/omnimon_alter_s-800.8f0ecb3df278.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/omnimon_mercifulmode-800.3951bf95049b.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/ophanimon-800.10f427fbc1d1.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/ophanimon_falldownmode-800.d07814b312c4.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/parasimon-800.31c7f5238384.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/pharaohmon-800.688eef69bde3.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/phoenixmon-800.6e36cff4857e.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/piedmon-800.aac35d031acd.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/plesiomon-800.d7e8eb582d46.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/pukumon-800.3254e865bc0d.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/puppetmon-800.3b92a48f0c13.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/ravemon-800.ad546ac129ee.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/ravemon_burstmode-800.c7151a46fef0.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/reapermon-800.3407fc6c5de6.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/rosemon-800.a37a420739af.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/rosemon_burstmode-800.7c6899e86124.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/saberleomon-800.1ab0807139a7.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/sakuyamon-800.49c729240aad.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/seraphimon-800.da8e03e92cf3.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/shinegreymon-800.2e2aeb6fa173.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/shinegreymon_burstmode-800.abf91e975d74.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/shinegreymon_ruinmode-800.8bc97777711e.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/skullmammothmon-800.7bb26b2ac86c.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/slashangemon-800.65b85a0445a0.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/tigervespamon-800.80cc030e2bbf.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/titamon-800.2a3697216ff5.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/ulforceveedramon-800.641e1bd5ff9b.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/varodurumon-800.983bd6909028.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/venommyotismon-800.adb9bd0da7a0.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/wargreymon-800.b7c34456a312.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/zanbamon-800.d6e9721d6a70.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/zeedmillenniumon-800.d92222ef52ff.webp",
+            "https://dsrworldwiki.com/assets-opt/digimons/zhuqiaomon-800.00686b2c07df.webp"
+        ];
+
+        // --- DADOS E ESTADO ---
+        const TABS = {
+            BLUE: { id: 'blue', label: 'Time Data', color: 'bg-blue-600', border: 'border-blue-600', text: 'text-blue-500' },
+            RED: { id: 'red', label: 'Time Virus', color: 'bg-red-600', border: 'border-red-600', text: 'text-red-500' },
+            GREEN: { id: 'green', label: 'Time Vacina', color: 'bg-green-600', border: 'border-green-600', text: 'text-green-500' }
+        };
+
+        const MAX_SLOTS = 8; // RESTAURADO PARA 8
+
+        // Estado da aplicação
+        let state = {
+            activeTab: 'blue',
+            items: {
+                blue: [],
+                red: [],
+                green: []
+            },
+            gallery: [] // Banco de dados pessoal
+        };
+
+        // Variável de controle de drag and drop
+        let dragSrcIndex = null;
+
+        // Variável temporária para imagem carregada (base64)
+        let tempImageBase64 = null;
+
+        // Variavel temporaria para a imagem gerada (DataURL)
+        let generatedImageDataUrl = null;
+
+        // --- ELEMENTOS DO DOM ---
+        const els = {
+            tabsContainer: document.getElementById('tabs-container'),
+            mainArea: document.getElementById('main-area'),
+            tabTitle: document.getElementById('tab-title'),
+            slotCounter: document.getElementById('slot-counter'),
+            slotsGrid: document.getElementById('slots-grid'),
+            addForm: document.getElementById('add-form'),
+            inputName: document.getElementById('input-name'),
+            inputStr: document.getElementById('input-str'),
+            inputInt: document.getElementById('input-int'),
+            inputDef: document.getElementById('input-def'),
+            inputUrl: document.getElementById('input-url'),
+            inputFile: document.getElementById('input-file'),
+            fileLabel: document.getElementById('file-label'),
+            btnSubmit: document.getElementById('btn-submit'),
+            btnSaveDb: document.getElementById('btn-save-db'),
+            errorContainer: document.getElementById('error-container'),
+            errorMessage: document.getElementById('error-message'),
+            toastContainer: document.getElementById('toast-container'),
+            toastMessage: document.getElementById('toast-message'),
+            galleryContainer: document.getElementById('gallery-container'),
+            dbCounter: document.getElementById('db-counter'),
+            btnDownload: document.getElementById('btn-download'),
+            exportContent: document.getElementById('export-content'),
+            previewModal: document.getElementById('preview-modal'),
+            previewImage: document.getElementById('preview-image')
+        };
+
+        // --- FUNÇÕES DE RENDERIZAÇÃO ---
+
+        function render() {
+            renderTabs();
+            renderMainArea();
+            renderGallery();
+            renderFormButton();
+            lucide.createIcons();
+        }
+
+        function renderTabs() {
+            els.tabsContainer.innerHTML = Object.values(TABS).map(tab => {
+                const isActive = state.activeTab === tab.id;
+                const count = state.items[tab.id].length;
+                
+                return `
+                    <button
+                        onclick="switchTab('${tab.id}')"
+                        class="flex-1 py-3 text-sm md:text-lg font-bold transition-all duration-300 rounded-lg flex items-center justify-center gap-2 cursor-pointer
+                        ${isActive 
+                            ? `${tab.color} text-white shadow-lg scale-100` 
+                            : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                        }"
+                    >
+                        <div class="w-3 h-3 rounded-full ${isActive ? 'bg-white' : tab.color}"></div>
+                        ${tab.label}
+                        <span class="text-xs opacity-60 ml-1">(${count}/${MAX_SLOTS})</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderMainArea() {
+            const currentTab = TABS[Object.keys(TABS).find(k => TABS[k].id === state.activeTab)];
+            const currentItems = state.items[state.activeTab];
+
+            // Atualizar estilos
+            els.mainArea.className = `bg-slate-800 rounded-2xl p-6 border-t-4 ${currentTab.border} shadow-2xl min-h-[250px] transition-colors duration-300`;
+            els.tabTitle.className = `text-2xl font-bold flex items-center gap-2 ${currentTab.text}`;
+            els.tabTitle.textContent = currentTab.label;
+            els.slotCounter.textContent = `Slots: ${currentItems.length} / ${MAX_SLOTS}`;
+
+            let gridHtml = '';
+
+            // Slots Preenchidos (Arrastáveis)
+            currentItems.forEach((item, index) => {
+                gridHtml += `
+                    <div 
+                        class="group relative bg-slate-700 rounded-3xl border-2 border-slate-600 hover:border-white transition-all duration-300 shadow-lg hover:shadow-2xl flex flex-col overflow-hidden fade-in cursor-grab"
+                        draggable="true"
+                        ondragstart="handleDragStart(event, ${index})"
+                        ondragend="handleDragEnd(event)"
+                        ondragover="handleDragOver(event)"
+                        ondragenter="handleDragEnter(event)"
+                        ondragleave="handleDragLeave(event)"
+                        ondrop="handleDrop(event, ${index})"
+                    >
+                        
+                        <!-- Container da Imagem (Quadrado) -->
+                        <div class="relative w-full aspect-square overflow-hidden bg-slate-800 pointer-events-none-on-drag">
+                            ${item.img 
+                                ? `<img src="${item.img}" alt="${item.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">` 
+                                : `<div class="w-full h-full flex items-center justify-center text-3xl font-bold text-slate-900/50 bg-slate-600">${item.name.substring(0, 2).toUpperCase()}</div>`
+                            }
+
+                            <!-- Botão de Remover (Sobre a Imagem) -->
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10 backdrop-blur-[2px]">
+                                <button 
+                                    onclick="removeItem(event, ${item.id})"
+                                    class="p-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all hover:scale-110 shadow-xl border-2 border-white/20 cursor-pointer pointer-events-auto"
+                                    title="Remover"
+                                    onmousedown="event.stopPropagation()" 
+                                >
+                                    <i data-lucide="trash-2" class="w-6 h-6"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Etiqueta do Nome -->
+                        <div class="py-1 px-1 bg-slate-800/80 text-center border-t border-slate-600/50 flex flex-col items-center justify-center pointer-events-none-on-drag">
+                            <span class="text-white text-xs md:text-sm font-impact tracking-wide uppercase block truncate w-full text-slate-200 group-hover:text-white transition-colors">
+                                ${item.name}
+                            </span>
+                        </div>
+
+                        <!-- Abas de Stats Editáveis (3 Quadrados compactos) -->
+                        <div class="grid grid-cols-3 text-[9px] font-bold text-center bg-slate-900 border-t border-slate-600">
+                            <div class="flex flex-col items-center justify-center bg-red-900/40 border-r border-slate-700 py-1">
+                                <span class="text-red-400 text-[8px] mb-0.5">STR</span>
+                                <div class="flex items-center">
+                                    <input 
+                                        type="number" 
+                                        value="${item.str || 0}" 
+                                        class="w-6 bg-transparent text-white text-center outline-none"
+                                        onchange="updateStat(${item.id}, 'str', this.value)"
+                                        onmousedown="event.stopPropagation()"
+                                    >
+                                    <span class="text-red-400">%</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-center justify-center bg-blue-900/40 border-r border-slate-700 py-1">
+                                <span class="text-blue-400 text-[8px] mb-0.5">INT</span>
+                                <div class="flex items-center">
+                                    <input 
+                                        type="number" 
+                                        value="${item.int || 0}" 
+                                        class="w-6 bg-transparent text-white text-center outline-none"
+                                        onchange="updateStat(${item.id}, 'int', this.value)"
+                                        onmousedown="event.stopPropagation()"
+                                    >
+                                    <span class="text-blue-400">%</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-center justify-center bg-green-900/40 py-1">
+                                <span class="text-green-400 text-[8px] mb-0.5">DEF</span>
+                                <div class="flex items-center">
+                                    <input 
+                                        type="number" 
+                                        value="${item.def || 0}" 
+                                        class="w-6 bg-transparent text-white text-center outline-none"
+                                        onchange="updateStat(${item.id}, 'def', this.value)"
+                                        onmousedown="event.stopPropagation()"
+                                    >
+                                    <span class="text-green-400">%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Slots Vazios (Alvos de Drop)
+            const emptySlots = Math.max(0, MAX_SLOTS - currentItems.length);
+            for (let i = 0; i < emptySlots; i++) {
+                gridHtml += `
+                    <div 
+                        class="flex flex-col rounded-3xl border-2 border-dashed border-slate-700/60 transition-colors hover:bg-slate-800 hover:border-slate-600 overflow-hidden opacity-60 hover:opacity-100"
+                        ondragover="handleDragOver(event)"
+                        ondragenter="handleDragEnter(event)"
+                        ondragleave="handleDragLeave(event)"
+                        ondrop="handleDropToEmpty(event)"
+                    >
+                        <div class="w-full aspect-square flex items-center justify-center bg-slate-800/30 pointer-events-none">
+                            <span class="text-2xl font-bold opacity-30 text-slate-500">${currentItems.length + i + 1}</span>
+                        </div>
+                        <div class="py-2 px-1 bg-slate-800/20 border-t border-dashed border-slate-700/60 flex-1 min-h-[40px] pointer-events-none"></div>
+                    </div>
+                `;
+            }
+
+            els.slotsGrid.innerHTML = gridHtml;
+        }
+
+        // Nova função para gerar a visualização de exportação
+        function renderExportView() {
+            // MUDANÇA: Layout Vertical (Times empilhados verticalmente)
+            els.exportContent.className = "flex flex-col gap-6 w-full"; // Times um em cima do outro
+            
+            let html = '';
+            
+            Object.values(TABS).forEach(tab => {
+                const items = state.items[tab.id];
+                const borderColor = tab.color.replace('bg-', 'border-'); 
+                
+                html += `
+                    <div class="bg-slate-800 rounded-xl p-4 border-l-8 ${borderColor} shadow-lg w-full">
+                        <div class="flex items-center gap-3 mb-4 border-b border-slate-700 pb-2">
+                            <div class="w-4 h-4 rounded-full ${tab.color}"></div>
+                            <h2 class="text-xl font-bold text-slate-200 uppercase tracking-wider">${tab.label}</h2>
+                        </div>
+                        
+                        <!-- Grid Horizontal de Items (Linha única) -->
+                        <div class="grid grid-cols-8 gap-3">
+                `;
+
+                // Renderiza slots preenchidos
+                items.forEach(item => {
+                    html += `
+                        <div class="bg-slate-700 rounded-lg overflow-hidden border border-slate-600 flex flex-col shadow-md">
+                            <!-- Foto Grande e Quadrada -->
+                            <div class="w-full aspect-square bg-slate-800 relative">
+                                ${item.img 
+                                    ? `<img src="${item.img}" class="absolute inset-0 w-full h-full object-cover">`
+                                    : `<div class="w-full h-full flex items-center justify-center font-bold text-slate-500 text-3xl">${item.name.substring(0,1)}</div>`
+                                }
+                            </div>
+                            
+                            <!-- Info Abaixo (Nome + 3 Quadrados de Stats) -->
+                            <div class="bg-slate-900/90 border-t border-slate-600">
+                                <div class="p-1 flex items-center justify-center text-center">
+                                    <span class="text-[10px] leading-tight text-white font-impact uppercase block whitespace-normal break-words w-full tracking-wide truncate">${item.name}</span>
+                                </div>
+                                
+                                <!-- Stats como 3 quadrados abaixo (mesmo estilo da criação) -->
+                                <div class="grid grid-cols-3 text-[9px] font-bold text-center border-t border-slate-700">
+                                    <div class="flex flex-col justify-center py-1 bg-red-900/50 text-red-200 border-r border-slate-700">
+                                        <span class="text-[7px] opacity-70 mb-0.5">STR</span>
+                                        <span>${item.str || 0}%</span>
+                                    </div>
+                                    <div class="flex flex-col justify-center py-1 bg-blue-900/50 text-blue-200 border-r border-slate-700">
+                                        <span class="text-[7px] opacity-70 mb-0.5">INT</span>
+                                        <span>${item.int || 0}%</span>
+                                    </div>
+                                    <div class="flex flex-col justify-center py-1 bg-green-900/50 text-green-200">
+                                        <span class="text-[7px] opacity-70 mb-0.5">DEF</span>
+                                        <span>${item.def || 0}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                // Renderiza slots vazios
+                const emptyCount = MAX_SLOTS - items.length;
+                for(let i=0; i<emptyCount; i++) {
+                     html += `
+                        <div class="bg-slate-800/30 rounded-lg border border-dashed border-slate-700 flex items-center justify-center aspect-square opacity-30">
+                           <span class="text-xs">•</span>
+                        </div>
+                    `;
+                }
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            els.exportContent.innerHTML = html;
+        }
+
+        // ... (Resto do código mantido igual) ...
+
+        function renderGallery() {
+            els.dbCounter.textContent = `${state.gallery.length} itens`;
+
+            if (state.gallery.length === 0) {
+                els.galleryContainer.innerHTML = `
+                    <div class="text-center text-slate-500 py-10 text-sm flex flex-col items-center gap-2">
+                        <i data-lucide="database" class="w-8 h-8 opacity-20"></i>
+                        <span>Nenhum Digimon salvo.</span>
+                        <span class="text-xs opacity-60">Salve seus favoritos aqui para usar depois.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            els.galleryContainer.innerHTML = state.gallery.map(item => `
+                <div class="flex items-center gap-3 bg-slate-900/50 p-2 rounded-lg border border-slate-700 hover:border-blue-500 transition-colors group">
+                    <div class="w-12 h-12 rounded-md bg-slate-800 overflow-hidden flex-shrink-0 border border-slate-600">
+                        ${item.img ? `<img src="${item.img}" class="w-full h-full object-cover">` : ''}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-bold text-sm truncate text-white">${item.name}</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5 flex gap-2">
+                            <span class="text-red-400">S:${item.str || 0}%</span>
+                            <span class="text-blue-400">I:${item.int || 0}%</span>
+                            <span class="text-green-400">D:${item.def || 0}%</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                        <button onclick="addFromGallery('${item.id}')" class="p-1.5 bg-blue-600 hover:bg-blue-500 rounded text-white" title="Adicionar ao Time Atual">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="removeFromGallery('${item.id}')" class="p-1.5 bg-slate-700 hover:bg-red-500 rounded text-slate-300 hover:text-white" title="Excluir do Banco">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderFormButton() {
+            const hasName = els.inputName.value.trim().length > 0;
+            els.btnSubmit.disabled = !hasName;
+            
+            if (tempImageBase64) {
+                els.fileLabel.textContent = "Imagem Carregada!";
+                els.fileLabel.parentElement.classList.add("border-green-500", "text-green-400");
+                els.fileLabel.parentElement.classList.remove("border-slate-500", "text-slate-400");
+            } else {
+                els.fileLabel.textContent = "Carregar do Computador";
+                els.fileLabel.parentElement.classList.remove("border-green-500", "text-green-400");
+                els.fileLabel.parentElement.classList.add("border-slate-500", "text-slate-400");
+            }
+        }
+
+        function updateStat(itemId, statType, value) {
+            const list = state.items[state.activeTab];
+            const item = list.find(i => i.id === itemId);
+            if (item) {
+                item[statType] = value;
+                saveLocal();
+            }
+        }
+
+        function handleDragStart(e, index) {
+            dragSrcIndex = index;
+            e.target.classList.add('draggable-source');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', index);
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('draggable-source');
+            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            dragSrcIndex = null;
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDragEnter(e) {
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e, targetIndex) {
+            e.stopPropagation();
+            e.currentTarget.classList.remove('drag-over');
+            if (dragSrcIndex !== null && dragSrcIndex !== targetIndex) {
+                const list = state.items[state.activeTab];
+                const itemToMove = list[dragSrcIndex];
+                list.splice(dragSrcIndex, 1);
+                list.splice(targetIndex, 0, itemToMove);
+                saveLocal();
+                render();
+            }
+            return false;
+        }
+
+        function handleDropToEmpty(e) {
+            e.stopPropagation();
+            e.currentTarget.classList.remove('drag-over');
+            if (dragSrcIndex !== null) {
+                const list = state.items[state.activeTab];
+                const itemToMove = list[dragSrcIndex];
+                list.splice(dragSrcIndex, 1);
+                list.push(itemToMove);
+                saveLocal();
+                render();
+            }
+            return false;
+        }
+
+        function switchTab(tabId) {
+            state.activeTab = tabId;
+            hideError();
+            render();
+        }
+
+        els.inputFile.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    tempImageBase64 = evt.target.result;
+                    els.inputUrl.value = '';
+                    renderFormButton();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        els.inputUrl.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                tempImageBase64 = null;
+                els.inputFile.value = '';
+                renderFormButton();
+            }
+        });
+
+        function getFormData() {
+            const name = els.inputName.value.trim();
+            const img = tempImageBase64 || els.inputUrl.value.trim();
+            const str = els.inputStr.value.trim();
+            const int = els.inputInt.value.trim();
+            const def = els.inputDef.value.trim();
+            
+            if (!name) return null;
+            
+            return {
+                id: Date.now(),
+                name,
+                img,
+                str,
+                int,
+                def
+            };
+        }
+
+        function addItem(e) {
+            e.preventDefault();
+            const item = getFormData();
+            if (!item) return;
+
+            const currentTab = TABS[Object.keys(TABS).find(k => TABS[k].id === state.activeTab)];
+            
+            if (state.items[state.activeTab].length >= MAX_SLOTS) {
+                showError(`A aba ${currentTab.label} já atingiu o limite de ${MAX_SLOTS} ícones!`);
+                return;
+            }
+
+            state.items[state.activeTab].push(item);
+            saveLocal();
+            resetForm();
+            render();
+        }
+
+        els.btnSaveDb.addEventListener('click', function() {
+            const item = getFormData();
+            if (!item) {
+                showError("Preencha pelo menos o Nome para salvar no Banco.");
+                return;
+            }
+            if (state.gallery.some(g => g.name.toLowerCase() === item.name.toLowerCase())) {
+            }
+            state.gallery.unshift(item);
+            saveLocal();
+            showToast("Salvo no Banco de Dados!");
+            render();
+        });
+
+        function addFromGallery(id) {
+            const galleryItem = state.gallery.find(g => String(g.id) === String(id));
+            if (!galleryItem) return;
+
+            const newItem = { ...galleryItem, id: Date.now() };
+            const currentTab = TABS[Object.keys(TABS).find(k => TABS[k].id === state.activeTab)];
+            if (state.items[state.activeTab].length >= MAX_SLOTS) {
+                showError(`A aba ${currentTab.label} cheia!`);
+                return;
+            }
+
+            state.items[state.activeTab].push(newItem);
+            saveLocal();
+            render();
+        }
+
+        function removeFromGallery(id) {
+            state.gallery = state.gallery.filter(g => String(g.id) !== String(id));
+            saveLocal();
+            render();
+        }
+
+        function clearGallery() {
+            state.gallery = [];
+            saveLocal();
+            render();
+        }
+
+        function importWikiData() {
+            const wikiItems = WIKI_URLS.map((url, index) => {
+                const filename = url.split('/').pop();
+                const namePart = filename.split('-800')[0];
+                const cleanName = namePart.split('_')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ');
+                
+                return {
+                    id: `wiki_${index}_${Date.now()}`,
+                    name: cleanName,
+                    img: url,
+                    str: 0,
+                    int: 0,
+                    def: 0
+                };
+            });
+
+            let count = 0;
+            wikiItems.forEach(item => {
+                if (!state.gallery.some(g => g.name.toLowerCase() === item.name.toLowerCase())) {
+                    state.gallery.push(item);
+                    count++;
+                }
+            });
+
+            saveLocal();
+            render();
+            showToast(`${count} Digimons importados com sucesso!`);
+        }
+
+        function removeItem(e, id) {
+            if(e) e.stopPropagation();
+            state.items[state.activeTab] = state.items[state.activeTab].filter(item => item.id !== id);
+            saveLocal();
+            render();
+        }
+
+        function resetForm() {
+            els.inputName.value = '';
+            els.inputUrl.value = '';
+            els.inputFile.value = '';
+            els.inputStr.value = '';
+            els.inputInt.value = '';
+            els.inputDef.value = '';
+            tempImageBase64 = null;
+            renderFormButton();
+        }
+
+        async function prepareImageDownload() {
+            const exportContainer = document.getElementById('export-container');
+            const btn = els.btnDownload;
+            const originalHtml = btn.innerHTML;
+
+            renderExportView();
+
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Gerando Prévia...`;
+            btn.disabled = true;
+            lucide.createIcons();
+
+            await new Promise(resolve => setTimeout(resolve, 200));
+
+            try {
+                const canvas = await html2canvas(exportContainer, {
+                    backgroundColor: '#0f172a',
+                    useCORS: true,
+                    scale: 2
+                });
+
+                generatedImageDataUrl = canvas.toDataURL('image/png');
+                els.previewImage.src = generatedImageDataUrl;
+                els.previewModal.classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                showError('Erro ao gerar imagem.');
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
+        function closePreview() {
+            els.previewModal.classList.add('hidden');
+            generatedImageDataUrl = null;
+        }
+
+        function confirmDownload() {
+            if (!generatedImageDataUrl) return;
+            const link = document.createElement('a');
+            link.download = 'meu-time-digicombo.png';
+            link.href = generatedImageDataUrl;
+            link.click();
+            showToast('Imagem salva com sucesso!');
+            closePreview();
+        }
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('digiTierList_v2');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    state.items = parsed.items || state.items;
+                    state.gallery = parsed.gallery || [];
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function saveLocal() {
+            localStorage.setItem('digiTierList_v2', JSON.stringify({
+                items: state.items,
+                gallery: state.gallery
+            }));
+        }
+
+        function showToast(msg) {
+            els.toastMessage.textContent = msg;
+            els.toastContainer.classList.remove('hidden');
+            setTimeout(() => els.toastContainer.classList.add('hidden'), 3000);
+        }
+
+        function showError(msg) {
+            els.errorMessage.textContent = msg;
+            els.errorContainer.classList.remove('hidden');
+            setTimeout(() => hideError(), 3000);
+        }
+
+        function hideError() {
+            els.errorContainer.classList.add('hidden');
+        }
+
+        els.addForm.addEventListener('submit', addItem);
+        els.inputName.addEventListener('input', renderFormButton);
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            render();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
