@@ -25,15 +25,15 @@
         }
         /* Scrollbar personalizada */
         ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
             background: #1e293b; 
         }
         ::-webkit-scrollbar-thumb {
             background: #475569; 
-            border-radius: 4px;
+            border-radius: 3px;
         }
         ::-webkit-scrollbar-thumb:hover {
             background: #64748b; 
@@ -78,6 +78,7 @@
         }
 
         /* Container de Exportação */
+        /* Aumentado para 1600px para garantir que os cards tenham espaço para nomes longos */
         #export-wrapper {
             position: absolute;
             left: -9999px;
@@ -88,7 +89,7 @@
         /* Estilo para os botões de skill micro */
         .skill-btn {
             width: 100%;
-            height: 20px; /* Aumentei um pouco para facilitar o toque no mobile */
+            height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -99,9 +100,10 @@
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-2 md:p-4 font-sans selection:bg-purple-500 selection:text-white">
+<body class="bg-slate-900 text-slate-100 min-h-screen p-2 md:p-4 font-sans selection:bg-purple-500 selection:text-white overflow-x-hidden">
 
-    <div class="max-w-[98%] mx-auto space-y-6 pb-20">
+    <!-- Container fluido limitado a 80% da largura -->
+    <div class="w-full max-w-[80%] mx-auto space-y-4 md:space-y-6 pb-20 px-1 md:px-4">
         
         <!-- Header -->
         <div class="text-center space-y-4 md:space-y-2 relative flex flex-col md:block items-center justify-center pt-2">
@@ -147,8 +149,8 @@
         </div>
 
         <!-- Área Principal (Grid) -->
-        <div id="main-area" class="bg-slate-800 rounded-2xl p-4 md:p-6 border-t-4 shadow-2xl min-h-[250px] transition-colors duration-300">
-            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-3">
+        <div id="main-area" class="bg-slate-800 rounded-2xl p-3 md:p-6 border-t-4 shadow-2xl min-h-[250px] transition-colors duration-300">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 md:mb-6 gap-3">
                 <h2 id="tab-title" class="text-xl md:text-2xl font-bold flex items-center gap-2 transition-colors duration-300">
                     <!-- Título gerado via JS -->
                 </h2>
@@ -164,57 +166,56 @@
             </div>
 
             <!-- Grid de Slots -->
-            <!-- Alterado: 2 colunas mobile, 4 colunas desktop (gera 4 em cima, 4 em baixo) -->
-            <div id="slots-grid" class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            <div id="slots-grid" class="grid grid-cols-2 md:grid-cols-4 2xl:grid-cols-8 gap-2 md:gap-3 lg:gap-4">
                 <!-- Slots gerados via JS -->
             </div>
         </div>
 
         <!-- Área de Controles -->
-        <div class="grid lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        <div class="grid lg:grid-cols-2 gap-4 md:gap-6 max-w-5xl mx-auto">
             <!-- Formulário de Adição -->
-            <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-lg h-fit">
-                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2 text-slate-300">
+            <div class="bg-slate-800 p-4 md:p-5 rounded-xl border border-slate-700 shadow-lg h-fit">
+                <h3 class="text-base md:text-lg font-semibold mb-3 flex items-center gap-2 text-slate-300">
                     <i data-lucide="plus-circle" class="w-5 h-5"></i>
                     Novo Digimon
                 </h3>
-                <form id="add-form" class="space-y-4">
+                <form id="add-form" class="space-y-3 md:space-y-4">
                     <div>
-                        <label class="text-xs text-slate-500 uppercase font-bold tracking-wider">Nome</label>
+                        <label class="text-[10px] md:text-xs text-slate-500 uppercase font-bold tracking-wider">Nome</label>
                         <input type="text" id="input-name" placeholder="Ex: Greymon" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white placeholder-slate-500">
                     </div>
                     <div class="grid grid-cols-3 gap-2">
                         <div>
-                            <label class="text-[10px] text-red-400 uppercase font-bold tracking-wider block mb-1 text-center">STR (%)</label>
+                            <label class="text-[9px] md:text-[10px] text-red-400 uppercase font-bold tracking-wider block mb-1 text-center">STR (%)</label>
                             <input type="number" id="input-str" placeholder="0" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-center text-sm focus:ring-2 focus:ring-red-500 outline-none transition-all text-white">
                         </div>
                         <div>
-                            <label class="text-[10px] text-blue-400 uppercase font-bold tracking-wider block mb-1 text-center">INT (%)</label>
+                            <label class="text-[9px] md:text-[10px] text-blue-400 uppercase font-bold tracking-wider block mb-1 text-center">INT (%)</label>
                             <input type="number" id="input-int" placeholder="0" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-center text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white">
                         </div>
                         <div>
-                            <label class="text-[10px] text-[#e4db2b] uppercase font-bold tracking-wider block mb-1 text-center">DEF (%)</label>
+                            <label class="text-[9px] md:text-[10px] text-[#e4db2b] uppercase font-bold tracking-wider block mb-1 text-center">DEF (%)</label>
                             <input type="number" id="input-def" placeholder="0" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-center text-sm focus:ring-2 focus:ring-[#e4db2b] outline-none transition-all text-white">
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <label class="text-xs text-slate-500 uppercase font-bold tracking-wider">Imagem</label>
+                        <label class="text-[10px] md:text-xs text-slate-500 uppercase font-bold tracking-wider">Imagem</label>
                         <div class="flex items-center gap-2 bg-slate-900 p-2 rounded-lg border border-slate-600">
-                            <i data-lucide="link" class="w-4 h-4 text-slate-400"></i>
-                            <input type="text" id="input-url" placeholder="Cole o link da imagem..." class="w-full bg-transparent border-none outline-none text-sm text-white placeholder-slate-600">
+                            <i data-lucide="link" class="w-4 h-4 text-slate-400 flex-shrink-0"></i>
+                            <input type="text" id="input-url" placeholder="Link da imagem..." class="w-full bg-transparent border-none outline-none text-sm text-white placeholder-slate-600 min-w-0">
                         </div>
-                        <div class="text-center text-xs text-slate-600 font-bold">OU</div>
-                        <div class="relative group">
+                        <div class="text-center text-[10px] md:text-xs text-slate-600 font-bold">OU</div>
+                        <div class="relative group h-10 md:h-auto">
                             <input type="file" id="input-file" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                            <div class="bg-slate-900 border border-dashed border-slate-500 group-hover:border-blue-500 rounded-lg p-3 flex items-center justify-center gap-2 text-sm text-slate-400 group-hover:text-blue-400 transition-colors">
+                            <div class="h-full bg-slate-900 border border-dashed border-slate-500 group-hover:border-blue-500 rounded-lg p-2 flex items-center justify-center gap-2 text-sm text-slate-400 group-hover:text-blue-400 transition-colors">
                                 <i data-lucide="upload" class="w-4 h-4"></i>
-                                <span id="file-label">Carregar do Computador</span>
+                                <span id="file-label" class="text-xs md:text-sm">Carregar do Computador</span>
                             </div>
                         </div>
                     </div>
                     <div class="flex gap-2 pt-2">
-                        <button type="submit" id="btn-submit" disabled class="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2 rounded-lg transition-colors flex justify-center items-center gap-2">
-                            <i data-lucide="plus" class="w-5 h-5"></i> Add Time
+                        <button type="submit" id="btn-submit" disabled class="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2 rounded-lg transition-colors flex justify-center items-center gap-2 text-sm">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Add Time
                         </button>
                         <button type="button" id="btn-save-db" class="px-4 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2" title="Salvar no Banco de Dados Pessoal">
                             <i data-lucide="save" class="w-5 h-5"></i>
@@ -224,22 +225,22 @@
             </div>
 
             <!-- Banco de Dados -->
-            <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-lg flex flex-col h-[480px]">
-                <div class="flex flex-col gap-2 mb-4 border-b border-slate-700 pb-2">
+            <div class="bg-slate-800 p-4 md:p-5 rounded-xl border border-slate-700 shadow-lg flex flex-col h-[400px] md:h-[480px]">
+                <div class="flex flex-col gap-2 mb-3 border-b border-slate-700 pb-2">
                     <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-semibold flex items-center gap-2 text-slate-300"><i data-lucide="database" class="w-5 h-5"></i> Meu Banco de Dados</h3>
+                        <h3 class="text-base md:text-lg font-semibold flex items-center gap-2 text-slate-300"><i data-lucide="database" class="w-5 h-5"></i> Meu Banco de Dados</h3>
                         <span id="db-counter" class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-400">0 itens</span>
                     </div>
                     <div class="relative">
                         <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
-                        <input type="text" id="db-search" placeholder="Pesquisar Digimon..." class="w-full bg-slate-900 border border-slate-600 rounded-lg py-1.5 pl-9 pr-3 text-xs text-white outline-none focus:border-blue-500 transition-colors">
+                        <input type="text" id="db-search" placeholder="Pesquisar..." class="w-full bg-slate-900 border border-slate-600 rounded-lg py-1.5 pl-9 pr-3 text-xs text-white outline-none focus:border-blue-500 transition-colors">
                     </div>
-                    <button onclick="importWikiData()" class="w-full text-xs bg-blue-900/40 hover:bg-blue-800/60 text-blue-200 border border-blue-800/50 py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <button onclick="importWikiData()" class="w-full text-[10px] md:text-xs bg-blue-900/40 hover:bg-blue-800/60 text-blue-200 border border-blue-800/50 py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
                         <i data-lucide="book-open" class="w-3 h-3"></i> Carregar Digimons da Wiki
                     </button>
                 </div>
                 <div class="flex-1 overflow-y-auto pr-2 space-y-2" id="gallery-container"></div>
-                <div class="mt-4 pt-4 border-t border-slate-700 text-center">
+                <div class="mt-3 md:mt-4 pt-2 border-t border-slate-700 text-center">
                     <button onclick="clearGallery()" class="text-xs text-red-400 hover:text-red-300 underline">Limpar Banco de Dados</button>
                 </div>
             </div>
@@ -484,7 +485,7 @@
         function renderMainArea() {
             const currentTab = TABS[Object.keys(TABS).find(k => TABS[k].id === state.activeTab)];
             const currentItems = state.items[state.activeTab];
-            els.mainArea.className = `bg-slate-800 rounded-2xl p-4 md:p-6 border-t-4 ${currentTab.border} shadow-2xl min-h-[250px] transition-colors duration-300`;
+            els.mainArea.className = `bg-slate-800 rounded-2xl p-3 md:p-6 border-t-4 ${currentTab.border} shadow-2xl min-h-[250px] transition-colors duration-300`;
             els.tabTitle.className = `text-xl md:text-2xl font-bold flex items-center gap-2 ${currentTab.text}`;
             els.tabTitle.textContent = currentTab.label;
             els.slotCounter.textContent = `Slots: ${currentItems.length} / ${MAX_SLOTS}`;
@@ -494,8 +495,10 @@
                 gridHtml += `
                     <div class="group relative bg-slate-700 rounded-3xl border-2 border-slate-600 hover:border-white transition-all duration-300 shadow-lg hover:shadow-2xl flex flex-col overflow-hidden fade-in cursor-grab" draggable="true" ondragstart="handleDragStart(event, ${index})" ondragend="handleDragEnd(event)" ondragover="handleDragOver(event)" ondragenter="handleDragEnter(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, ${index})">
                         <!-- Imagem -->
-                        <div class="relative w-full aspect-square overflow-hidden bg-slate-800 no-pointer-events-img">
-                            ${item.img ? `<img src="${item.img}" alt="${item.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">` : `<div class="w-full h-full flex items-center justify-center text-3xl font-bold text-slate-900/50 bg-slate-600">${item.name.substring(0, 2).toUpperCase()}</div>`}
+                        <div class="relative w-full aspect-[4/3] p-1 overflow-hidden bg-slate-800 no-pointer-events-img">
+                            <div class="w-full h-full rounded-2xl overflow-hidden relative">
+                                ${item.img ? `<img src="${item.img}" alt="${item.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">` : `<div class="w-full h-full flex items-center justify-center text-3xl font-bold text-slate-900/50 bg-slate-600">${item.name.substring(0, 2).toUpperCase()}</div>`}
+                            </div>
                             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10 backdrop-blur-[2px] pointer-events-auto-important">
                                 <button onclick="removeItem(event, '${item.id}')" class="p-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all hover:scale-110 shadow-xl border-2 border-white/20 cursor-pointer pointer-events-auto" title="Remover" onmousedown="event.stopPropagation()"><i data-lucide="trash-2" class="w-6 h-6"></i></button>
                             </div>
@@ -506,21 +509,21 @@
                             <div class="py-1 px-1 text-center border-t border-slate-600/50">
                                 <span class="text-white text-xs font-impact tracking-wide uppercase block truncate w-full text-slate-200 group-hover:text-white transition-colors">${item.name}</span>
                             </div>
-                            <div class="grid grid-cols-3 text-[9px] font-bold text-center bg-slate-900 border-t border-slate-600">
-                                <div class="flex items-center justify-center bg-red-900/40 border-r border-slate-700 h-6">
-                                    <span class="text-red-300 mr-0.5 text-[8px]">S:</span>
-                                    <input type="number" value="${item.str || 0}" class="w-5 bg-transparent text-white text-center outline-none p-0 h-full text-[9px] pointer-events-auto" onchange="updateStat('${item.id}', 'str', this.value)" onmousedown="event.stopPropagation()">
-                                    <span class="text-red-300 text-[8px]">%</span>
+                            <div class="grid grid-cols-3 text-[10px] font-bold text-center bg-slate-900 border-t border-slate-600 h-8 items-center">
+                                <div class="flex items-center justify-center bg-red-900/40 border-r border-slate-700 h-full">
+                                    <span class="text-red-300 mr-1 font-extrabold">STR</span>
+                                    <input type="number" value="${item.str || 0}" class="w-6 bg-transparent text-white text-center outline-none p-0 h-full text-[11px] pointer-events-auto" onchange="updateStat('${item.id}', 'str', this.value)" onmousedown="event.stopPropagation()">
+                                    <span class="text-red-300 text-[9px]">%</span>
                                 </div>
-                                <div class="flex items-center justify-center bg-blue-900/40 border-r border-slate-700 h-6">
-                                    <span class="text-blue-300 mr-0.5 text-[8px]">I:</span>
-                                    <input type="number" value="${item.int || 0}" class="w-5 bg-transparent text-white text-center outline-none p-0 h-full text-[9px] pointer-events-auto" onchange="updateStat('${item.id}', 'int', this.value)" onmousedown="event.stopPropagation()">
-                                    <span class="text-blue-300 text-[8px]">%</span>
+                                <div class="flex items-center justify-center bg-blue-900/40 border-r border-slate-700 h-full">
+                                    <span class="text-blue-300 mr-1 font-extrabold">INT</span>
+                                    <input type="number" value="${item.int || 0}" class="w-6 bg-transparent text-white text-center outline-none p-0 h-full text-[11px] pointer-events-auto" onchange="updateStat('${item.id}', 'int', this.value)" onmousedown="event.stopPropagation()">
+                                    <span class="text-blue-300 text-[9px]">%</span>
                                 </div>
-                                <div class="flex items-center justify-center bg-[#e4db2b]/10 h-6">
-                                    <span class="text-[#e4db2b] mr-0.5 text-[8px]">D:</span>
-                                    <input type="number" value="${item.def || 0}" class="w-5 bg-transparent text-white text-center outline-none p-0 h-full text-[9px] pointer-events-auto" onchange="updateStat('${item.id}', 'def', this.value)" onmousedown="event.stopPropagation()">
-                                    <span class="text-[#e4db2b] text-[8px]">%</span>
+                                <div class="flex items-center justify-center bg-[#e4db2b]/10 h-full">
+                                    <span class="text-[#e4db2b] mr-1 font-extrabold">DEF</span>
+                                    <input type="number" value="${item.def || 0}" class="w-6 bg-transparent text-white text-center outline-none p-0 h-full text-[11px] pointer-events-auto" onchange="updateStat('${item.id}', 'def', this.value)" onmousedown="event.stopPropagation()">
+                                    <span class="text-[#e4db2b] text-[9px]">%</span>
                                 </div>
                             </div>
                         </div>
@@ -547,7 +550,7 @@
             const emptySlots = Math.max(0, MAX_SLOTS - currentItems.length);
             for (let i = 0; i < emptySlots; i++) {
                 gridHtml += `
-                    <div class="flex flex-col rounded-3xl border-2 border-dashed border-slate-700/60 transition-colors hover:bg-slate-800 hover:border-slate-600 overflow-hidden opacity-60 hover:opacity-100 min-h-[180px]" ondragover="handleDragOver(event)" ondragenter="handleDragEnter(event)" ondragleave="handleDragLeave(event)" ondrop="handleDropToEmpty(event)">
+                    <div class="flex flex-col rounded-3xl border-2 border-dashed border-slate-700/60 transition-colors hover:bg-slate-800 hover:border-slate-600 overflow-hidden opacity-60 hover:opacity-100 min-h-[160px]" ondragover="handleDragOver(event)" ondragenter="handleDragEnter(event)" ondragleave="handleDragLeave(event)" ondrop="handleDropToEmpty(event)">
                         <div class="w-full h-full flex items-center justify-center bg-slate-800/30 pointer-events-none"><span class="text-2xl font-bold opacity-30 text-slate-500">${currentItems.length + i + 1}</span></div>
                     </div>
                 `;
@@ -602,12 +605,14 @@
                 items.forEach(item => {
                     html += `
                         <div class="bg-slate-700 rounded-lg overflow-hidden border border-slate-600 flex flex-col shadow-md">
-                            <!-- Foto Grande -->
-                            <div class="w-full aspect-square bg-slate-800 relative">
-                                ${item.img 
-                                    ? `<img src="${item.img}" class="absolute inset-0 w-full h-full object-cover">`
-                                    : `<div class="w-full h-full flex items-center justify-center font-bold text-slate-500 text-3xl">${item.name.substring(0,1)}</div>`
-                                }
+                            <!-- Foto Grande com Aspecto Reduzido -->
+                            <div class="w-full aspect-[4/3] p-1 bg-slate-800 relative">
+                                <div class="w-full h-full rounded-lg overflow-hidden relative">
+                                    ${item.img 
+                                        ? `<img src="${item.img}" class="absolute inset-0 w-full h-full object-cover">`
+                                        : `<div class="w-full h-full flex items-center justify-center font-bold text-slate-500 text-3xl">${item.name.substring(0,1)}</div>`
+                                    }
+                                </div>
                             </div>
                             
                             <!-- Info -->
@@ -617,17 +622,17 @@
                                 </div>
                                 
                                 <!-- Stats Visíveis -->
-                                <div class="grid grid-cols-3 text-[9px] font-bold text-center border-t border-slate-700">
-                                    <div class="flex flex-col justify-center py-2 bg-red-900/50 text-red-200 border-r border-slate-700">
-                                        <span class="text-[7px] opacity-70 mb-0.5">STR</span>
+                                <div class="grid grid-cols-3 text-[9px] font-bold text-center border-t border-slate-700 h-8 items-center">
+                                    <div class="flex flex-col justify-center h-full bg-red-900/50 text-red-200 border-r border-slate-700">
+                                        <span class="text-[7px] opacity-70 mb-0.5 font-extrabold">STR</span>
                                         <span>${item.str || 0}%</span>
                                     </div>
-                                    <div class="flex flex-col justify-center py-2 bg-blue-900/50 text-blue-200 border-r border-slate-700">
-                                        <span class="text-[7px] opacity-70 mb-0.5">INT</span>
+                                    <div class="flex flex-col justify-center h-full bg-blue-900/50 text-blue-200 border-r border-slate-700">
+                                        <span class="text-[7px] opacity-70 mb-0.5 font-extrabold">INT</span>
                                         <span>${item.int || 0}%</span>
                                     </div>
-                                    <div class="flex flex-col justify-center py-2 bg-[#e4db2b]/20 text-[#e4db2b]">
-                                        <span class="text-[7px] opacity-70 mb-0.5">DEF</span>
+                                    <div class="flex flex-col justify-center h-full bg-[#e4db2b]/20 text-[#e4db2b]">
+                                        <span class="text-[7px] opacity-70 mb-0.5 font-extrabold">DEF</span>
                                         <span>${item.def || 0}%</span>
                                     </div>
                                 </div>
@@ -672,7 +677,7 @@
         }
 
         // ... (Resto das funções mantidas igual) ...
-
+        
         function renderGallery() {
             // Filter logic
             const searchTerm = els.dbSearch.value.trim().toLowerCase();
@@ -788,8 +793,8 @@
                 const list = state.items[state.activeTab];
                 const itemToMove = list[dragSrcIndex];
                 list.splice(dragSrcIndex, 1);
-                list.splice(targetIndex, 0, itemToMove); // Changed from push to splice at index for better empty slot handling if needed, but push works for simply appending. Let's keep logic simple: remove from old, push to end.
-                list.push(itemToMove); // Actually previous logic was push to end when dropping on empty.
+                list.splice(targetIndex, 0, itemToMove);
+                list.push(itemToMove);
                 saveLocal();
                 render();
             }
@@ -804,11 +809,11 @@
         }
 
         function clearCurrentTeam() {
-            if(confirm('Tem certeza que deseja remover todos os Digimons desta aba?')) {
-                state.items[state.activeTab] = [];
-                saveLocal();
-                render();
-            }
+            // Removida a confirmação (confirm) que bloqueava a execução em alguns navegadores
+            state.items[state.activeTab] = [];
+            saveLocal();
+            render();
+            showToast("Time limpo!");
         }
 
         function switchTab(tabId) {
